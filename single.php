@@ -2,11 +2,17 @@
 //header.phpの読み込み
 include './php/module/header.php';
 
-//データの受け渡しができているかを確認
-$article = !empty($_GET) ? $_GET : NULL;
 
-$sql = "SELECT * FROM comment WHERE parent_id=$article[id]";
+$parent_id = !empty($_GET['id']) ? $_GET['id'] : NULL; //データの受け渡し時にidがあるか
+$article = []; //記事の詳細内容を取得するための配列
+$comment = []; //記事の特定のコメントを取得するための配列
 
+//記事の内容をデータベースから取得
+$sql = "SELECT * FROM articles WHERE id=$parent_id";
+$article = $dbh->query($sql);
+
+//記事のコメント情報をデータベースから取得
+$sql = "SELECT * FROM comment WHERE parent_id=$parent_id";
 $comment = $dbh->query($sql);
 
 if($_SERVER['REQUEST_METHOD'] === "POST") {
@@ -17,14 +23,15 @@ if($_SERVER['REQUEST_METHOD'] === "POST") {
         if(strlen($text) > 50) {
             $error_msg = "コメントは50文字以内です。";
         } else {
-            $sql = "INSERT INTO comment (text, parent_id, my_id)" . "\n";
-            $sql .= "VALUES ( :text, :article_id, :comment_id)";
-
+            //SQLの作成(PHPヒアドキュメントの書き方)
+            $sql = <<< EOD
+            INSERT INTO comment (text, parent_id) 
+            VALUES ( :text, :article_id)
+            EOD;
             // SQL実行
             $stmt = $dbh->prepare($sql); //詳細版
-            $stmt->bindValue(':text', $text, PDO::PARAM_STR); 
-            $stmt->bindValue(':article_id', $article['id'], PDO::PARAM_INT);
-            $stmt->bindValue(':comment_id', NULL, PDO::PARAM_INT);
+            $stmt->bindValue(':text', $text, PDO::PARAM_STR);
+            $stmt->bindValue(':article_id', $parent_id, PDO::PARAM_INT);
             $stmt->execute();
             // $dbh->query($sql); //簡易版
             header('Location: ' . $_SERVER['REQUEST_URI']);
@@ -37,10 +44,13 @@ if($_SERVER['REQUEST_METHOD'] === "POST") {
     if(!empty($_POST['delete'])) {
         //選択した記事のIDを取得
         $id = !empty($_POST['id']) ? $_POST['id'] : NULL;
+        //sql作成
         $sql = "DELETE FROM comment WHERE my_id=:comment_id";
-        $stmt = $dbh->prepare($sql); //詳細版
+        //sqlの実行
+        $stmt = $dbh->prepare($sql);
         $stmt->bindValue(':comment_id', $id, PDO::PARAM_INT);
         $stmt->execute();
+        //リダイレクト
         header('Location: ' . $_SERVER['REQUEST_URI']);
         exit;
     };
@@ -49,12 +59,14 @@ if($_SERVER['REQUEST_METHOD'] === "POST") {
 ?>
 <main>
     <article>
+<?php foreach($article as $row) : ?>
         <div class="aritcle-title">
-            <h3><?php echo $article['title']; ?></h3>
+            <h3><?php echo $row['title']; ?></h3>
         </div>
         <div class="article-body">
-            <p><?php echo $article['text']; ?></p>
+            <p><?php echo $row['text']; ?></p>
         </div>
+<?php endforeach; ?>
     </article>
     <hr/>
     <div class="error_msg" style="padding: 0;"><p class="msg"><?= $error_msg; ?></p></div>

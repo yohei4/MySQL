@@ -38,13 +38,12 @@ if($_SERVER['REQUEST_METHOD'] === "POST") {
         if($error_title === true && $error_body === true) {
         //$error_titleと$error_bodyがtrueだったら
             //sqlの作成
-            $sql = "INSERT INTO articles (title, text, id)" . "\n";
-            $sql .= "VALUES ( :title, :body, :NULL)";
+            $sql = "INSERT INTO articles (title, text)" . "\n";
+            $sql .= "VALUES ( :title, :body)";
             // SQL実行
             $stmt = $dbh->prepare($sql); //詳細版
-            $stmt->bindValue(':title', $title, PDO::PARAM_STR); 
+            $stmt->bindValue(':title', $title, PDO::PARAM_STR);
             $stmt->bindValue(':body', $body, PDO::PARAM_STR);
-            $stmt->bindValue(':NULL', NULL, PDO::PARAM_INT);
             $stmt->execute();
             //$dbh->query($sql); //簡易版
             //リダイレクト
@@ -58,12 +57,13 @@ if($_SERVER['REQUEST_METHOD'] === "POST") {
             //選択した記事のIDを取得
             $id = !empty($_POST['id']) ? $_POST['id'] : NULL;
             //sql作成(コメントに共通のIDがあれば消す)
-            $sql = "DELETE articles, comment" . "\n";
-            $sql .= "FROM articles" . "\n";
-            $sql .= "LEFT OUTER JOIN comment" . "\n";
-            $sql .= "ON articles.id = comment.parent_id"  . "\n";
-            $sql .= "WHERE articles.id = :article_id;"  . "\n";
-            echo $sql;
+            $sql = <<< EOD
+            DELETE articles, comment
+            FROM articles
+            LEFT OUTER JOIN comment
+            ON articles.id = comment.parent_id
+            WHERE articles.id = :article_id
+            EOD;
             //sqlの実行
             $stmt = $dbh->prepare($sql); //詳細版
             $stmt->bindValue(':article_id', $id, PDO::PARAM_INT);
@@ -117,7 +117,7 @@ if($_SERVER['REQUEST_METHOD'] === "POST") {
                     <p><?php echo $row['text']?></p>
                 </div>
                 <div class="airticle-link">
-                    <p><a href="./single.php?title=<?= $row['title']; ?>&text=<?= $row['text']; ?>&id=<?= $row['id']; ?>">記事全文•コメントを見る</a></p>
+                    <p><a href="./single.php?id=<?= $row['id']; ?>">記事全文•コメントを見る</a></p>
                 </div>
                 <form action="" method="POST" class="comment">
                     <input name="mode" type="hidden" value="DELETE">
