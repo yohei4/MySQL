@@ -3,6 +3,9 @@
 //header.phpの読み込み
 include './php/module/header.php';
 
+//ページング用
+include './pageing.php';
+
 //methodがPOSTならば実行
 if($_SERVER['REQUEST_METHOD'] === "POST") {
 
@@ -47,7 +50,7 @@ if($_SERVER['REQUEST_METHOD'] === "POST") {
             $stmt->execute();
             //$dbh->query($sql); //簡易版
             //リダイレクト
-            header('Location: ' . $_SERVER['SCRIPT_NAME']);
+            header('Location: ' . $_SERVER['REQUEST_URI']);
             exit;
         }
     }
@@ -69,7 +72,7 @@ if($_SERVER['REQUEST_METHOD'] === "POST") {
             $stmt->bindValue(':article_id', $id, PDO::PARAM_INT);
             $stmt->execute();
             //リダイレクト
-            header('Location: ' . $_SERVER['SCRIPT_NAME']);
+            header('Location: ' . $_SERVER['REQUEST_URI']);
             exit;
         }
     };
@@ -105,8 +108,8 @@ if($_SERVER['REQUEST_METHOD'] === "POST") {
             <ul class="article-list">
 
 <!-- $aritlclesから1行ずつデータを取得する -->
-<?php if(isset($articles)) :?>
-    <?php foreach ($articles as $row) : ?>
+<?php if(isset($data)) :?>
+    <?php foreach ($data as $row) : ?>
         <?php if(!($row['title'] === "" && $row['body'] === "")) :?>
             <li>
             <article>
@@ -134,45 +137,20 @@ if($_SERVER['REQUEST_METHOD'] === "POST") {
 <?php endif; ?>
             </ul>
             <nav>
-                <ul class="page-list">
-                    <li class="page-item">
-                        <span><a href="./article.php">&lsaquo;</a></span>
-                    </li>
-                    <li class="page-item">
-                        <span><a href="./article.php">1</a></span>
-                    </li>
-                    <li class="page-item">
-                        <span><a href="./article.php">2</a></span>
-                    </li>
-                    <li class="page-item">
-                        <span><a href="./article.php">3</a></span>
-                    </li>
-                    <li class="page-item">
-                        <span><a href="./article.php">4</a></span>
-                    </li>
-                    <li class="page-item">
-                        <span><a href="./article.php">5</a></span>
-                    </li>
-                    <li class="page-item">
-                        <span><a href="./article.php">6</a></span>
-                    </li>
-                    <li class="page-item">
-                        <span><a href="./article.php">7</a></span>
-                    </li>
-                    <li class="page-item">
-                        <span><a href="./article.php">8</a></span>
-                    </li>
-                    <li class="page-item">
-                        <span><a href="./article.php">9</a></span>
-                    </li>
-                    <li class="page-item">
-                        <span><a href="./article.php">10</a></span>
-                    </li>
-                    <li class="page-item">
-                        <span><a href="./article.php">&rsaquo;</a></span>
-                    </li>
-                </ul>
-            </nav>
+            <ul class="page-list">
+                <li class="page-item">
+                    <span><a href="./front-page.php?page=<?php echo $prev; ?>">&lsaquo;</a></span>
+                </li>
+                <?php for($i = 1; $i <= $pages; $i++) :?>
+                <li class="page-item">
+                    <span><a href="./front-page.php?page=<?php echo $i; ?>"><?= $i; ?></a></span>
+                </li>
+                <?php endfor; ?>
+                <li class="page-item">
+                    <span><a href="./front-page.php?page=<?php echo $next; ?>">&rsaquo;</a></span>
+                </li>
+            </ul>
+        </nav>
         </section>
     </main>
     <script src="./js/ alert.js"></script>

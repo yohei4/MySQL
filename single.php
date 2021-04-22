@@ -10,6 +10,9 @@ $comment = []; //記事の特定のコメントを取得するための配列
 //記事の内容をデータベースから取得
 $sql = "SELECT * FROM articles WHERE id=$parent_id";
 $article = $dbh->query($sql);
+if($data = $article->fetchObject()) {
+    $page_data = ['title'=>$data->title, 'text'=>$data->text, 'id'=>$data->id];
+}
 
 //記事のコメント情報をデータベースから取得
 $sql = "SELECT * FROM comment WHERE parent_id=$parent_id";
@@ -59,14 +62,12 @@ if($_SERVER['REQUEST_METHOD'] === "POST") {
 ?>
 <main>
     <article>
-<?php foreach($article as $row) : ?>
         <div class="aritcle-title">
-            <h3><?php echo $row['title']; ?></h3>
+            <h3><?php echo $page_data['title']; ?></h3>
         </div>
         <div class="article-body">
-            <p><?php echo $row['text']; ?></p>
+            <p><?php echo $page_data['text']; ?></p>
         </div>
-<?php endforeach; ?>
     </article>
     <hr/>
     <div class="error_msg" style="padding: 0;"><p class="msg"><?= $error_msg; ?></p></div>
